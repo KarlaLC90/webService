@@ -5,6 +5,7 @@ using System;
 using MySql.Data.MySqlClient;
 using System.Configuration;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Person
 {
@@ -16,15 +17,23 @@ namespace Person
         
         public static void Main(string[] args)
         {
+        
             GetDeviceKey();
             FindPerson();
             SetCallback();
             FindRecords();
 
         }
-
+       
+        public class DeviceKey
+        {
+            public string data { get; set; }
+            public int result { get; set; }
+            public bool success { get; set; }
+        }
         public static void GetDeviceKey()
         {
+
             try
             {
                 Console.WriteLine("Proyecto de prueba in C#\r");
@@ -37,6 +46,8 @@ namespace Person
                 var request = new RestRequest(Method.GET);
                 IRestResponse response = client.Execute(request);
                 Console.WriteLine("El numero del dispositivo es: " + response.Content);
+                DeviceKey myDeserializedClass = JsonConvert.DeserializeObject<DeviceKey>(response.Content);
+
                 Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
             }
             catch (Exception e)
@@ -86,11 +97,49 @@ namespace Person
             request.AddParameter("callbackUrl", "C:\\Users\\garde\\Desktop\\callback");
             request.AddParameter("ip", "192.168.15.27");
             request.AddParameter("imgType", "1");
+            
             IRestResponse response = client.Execute(request);
             Console.WriteLine(response.Content);
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
         
         }
+
+        public class Record
+        {
+            public double temperature { get; set; }
+            public object time { get; set; }
+            public int id { get; set; }
+            public string path { get; set; }
+            public int state { get; set; }
+            public int type { get; set; }
+            public string personId { get; set; }
+            public int model { get; set; }
+        }
+
+        public class PageInfo
+        {
+            internal readonly string records;
+
+            public int index { get; set; }
+            public int size { get; set; }
+            public int total { get; set; }
+            public int length { get; set; }
+        }
+
+        public class Data
+        {
+            public List<Record> records { get; set; }
+            public PageInfo pageInfo { get; set; }
+        }
+
+        public class Root
+        {
+            public Data data { get; set; }
+            public int result { get; set; }
+            public bool success { get; set; }
+        }
+
+
 
         public static void FindRecords() 
         { 
@@ -98,7 +147,8 @@ namespace Person
                 "según el período de tiempo, el personal y otras condiciones de filtrado, extraer directamente los " +
                 "registros de identificación del dispositivo..\n");
 
-            var client = new RestClient("http://192.168.15.27:8090/findRecords");
+
+        var client = new RestClient("http://192.168.15.27:8090/findRecords");
             client.Timeout = -1;
             var request = new RestRequest(Method.POST);
             request.AlwaysMultipartFormData = true;
@@ -111,14 +161,17 @@ namespace Person
             IRestResponse response = client.Execute(request);
             Console.WriteLine(response.Content);
 
-            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
+            Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(response.Content);
+
+            
+
+           Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
             Console.WriteLine("Si no hay red, o no se inicia el servicio de recepción en la PC, el dispositivo se cargará nuevamente" +
                 " en 10 minutos, y así sucesivamente hasta que el registro de reconocimiento se envíe correctamente a la PC. ");
 
             Console.ReadKey();
         }
-
 
     }
 }
