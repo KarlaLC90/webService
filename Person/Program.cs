@@ -6,25 +6,39 @@ using MySql.Data.MySqlClient;
 using System.Configuration;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using MySql.Data.EntityFramework;
+using static System.Net.Mime.MediaTypeNames;
+using System.Data.Entity;
+using System.Windows;
 
 namespace Person
 {
     class Program
     {
-        //Conecction string
-        string connStr = ConfigurationManager.ConnectionStrings["myConnectionString"].ConnectionString;
+        public static string Text { get; private set; }
 
-        
         public static void Main(string[] args)
         {
-        
+           
+
+            MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016");
+
+            conn.Open();
+            MessageBox.Show("ServerVersion: " + conn.ServerVersion +
+            "\nState: " + conn.State.ToString());
+            Console.WriteLine(conn);
+
             GetDeviceKey();
             FindPerson();
             SetCallback();
             FindRecords();
 
+
         }
-       
+
+        
+
+
         public class DeviceKey
         {
             public string data { get; set; }
@@ -137,6 +151,7 @@ namespace Person
             public Data data { get; set; }
             public int result { get; set; }
             public bool success { get; set; }
+
         }
 
 
