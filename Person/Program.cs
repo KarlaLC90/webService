@@ -10,25 +10,26 @@ using MySql.Data.EntityFramework;
 using static System.Net.Mime.MediaTypeNames;
 using System.Data.Entity;
 using System.Windows;
+using System.Data;
 
 namespace Person
 {
     class Program
     {
-        public static string Text { get; private set; }
-
         public static void Main(string[] args)
         {
-           
 
-            MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016");
-
+            MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;pooling = false; convert zero datetime=True");
+            
             conn.Open();
             MessageBox.Show("ServerVersion: " + conn.ServerVersion +
             "\nState: " + conn.State.ToString());
             Console.WriteLine("El estado de la conexión es: " + conn.State);
+
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
+            pa_check_in_outs(1, DateTime.Now, 1, 1);
+            SelectCommand();
             GetDeviceKey();
             FindPerson();
             SetCallback();
@@ -37,7 +38,49 @@ namespace Person
 
         }
 
-        
+        public static void SelectCommand()
+        {
+            MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;;pooling = false; convert zero datetime=True");
+            string Query = "select * from pa_check_in_outs;";
+            MySqlCommand MyCommand2 = new MySqlCommand(Query, conn);
+
+            //For offline connection we weill use  MySqlDataAdapter class.  
+            MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+            MyAdapter.SelectCommand = MyCommand2;
+            DataTable dTable = new DataTable();
+            MyAdapter.Fill(dTable);
+        }
+
+        public static void pa_check_in_outs(int enroll_id, DateTime check_dt, int org_company_id, int status)
+        {
+
+            string connectionString = @"server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;pooling = false; convert zero datetime=True";
+
+            MySqlConnection connection = null;
+            try
+            {
+                connection = new MySqlConnection(connectionString);
+                connection.Open();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = connection;
+                cmd.CommandText = "INSERT INTO pa_check_in_outs(enroll_id, check_dt, org_company_id, status) VALUES(@enroll_id, '@check_dt', @org_company_id, @status)";
+                cmd.Prepare();
+
+                cmd.Parameters.AddWithValue("@enroll_id", enroll_id);
+                cmd.Parameters.AddWithValue("@check_dt", check_dt.ToString("YYYY-MM-DD"));
+                cmd.Parameters.AddWithValue("@org_company_id", org_company_id);
+                cmd.Parameters.AddWithValue("@status", status);
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = "SELECT * FROM pa_check_in_outs";
+            }
+            finally
+            {
+                if (connection != null)
+                    connection.Close();
+            }
+
+           
+        }
 
 
         public class DeviceKey
@@ -155,9 +198,9 @@ namespace Person
 
         }
 
+        
 
-
-        public static void FindRecords() 
+    public static void FindRecords() 
         { 
             Console.WriteLine("2. Extraer registros de identificación: consulta de registros de identificación, " +
                 "según el período de tiempo, el personal y otras condiciones de filtrado, extraer directamente los " +
@@ -179,9 +222,13 @@ namespace Person
 
             Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(response.Content);
 
-            
-
-           Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
+            /*
+            for (int i = 0; i < Root; i++)
+            {
+                Console.WriteLine(Root.data.pageInfo.records[i].ToString());
+            }
+            */
+            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
             Console.WriteLine("Si no hay red, o no se inicia el servicio de recepción en la PC, el dispositivo se cargará nuevamente" +
                 " en 10 minutos, y así sucesivamente hasta que el registro de reconocimiento se envíe correctamente a la PC. ");
