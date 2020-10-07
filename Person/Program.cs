@@ -26,7 +26,8 @@ namespace Person
             conn.Open();
             MessageBox.Show("ServerVersion: " + conn.ServerVersion +
             "\nState: " + conn.State.ToString());
-            Console.WriteLine(conn);
+            Console.WriteLine("El estado de la conexión es: " + conn.State);
+            Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
             GetDeviceKey();
             FindPerson();
