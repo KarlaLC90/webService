@@ -114,7 +114,9 @@
   <ItemGroup>
     <Compile Include="pa_check_in_outs.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Program.DeviceKey.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Root.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
