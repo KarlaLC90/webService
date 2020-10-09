@@ -8,11 +8,11 @@ namespace Person
 {
     class pa_check_in_outs
     {
-        int org_company_id { get; set; }
-        int enroll_id {get; set;}
-        string check_dt { get; set; }
-        int device_id { get; set; }
-        int status { get; set; }
+        public int id { get; set; } //
+        public int org_company_id { get; set; }  //1
+        public int enroll_id {get; set;} //personid
+        public DateTime check_dt { get; set; }  //time fecha
+       public int status { get; set; }  //1
         
 
         public pa_check_in_outs() { }

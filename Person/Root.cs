@@ -15,13 +15,18 @@ namespace Person
       
         public class records
         {
-            public double temperature { get; set; }
-            public string time { get; set; }
             public int id { get; set; }
+            public int org_company_id { get; set; }  //1
+            public string personId { get; set; }  //enroll_id
+            public long time { get; set; }  //check_dt //  long
+            public int status { get; set; }  //1
+
+            public double temperature { get; set; }
+            
             public string path { get; set; }
             public int state { get; set; }
             public int type { get; set; }
-            public string personId { get; set; }
+            
             public int model { get; set; }
         }
 
