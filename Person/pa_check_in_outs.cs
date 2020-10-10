@@ -8,7 +8,7 @@ namespace Person
 {
     class pa_check_in_outs
     {
-        public int id { get; set; } //
+       
         public int org_company_id { get; set; }  //1
         public int enroll_id {get; set;} //personid
         public DateTime check_dt { get; set; }  //time fecha

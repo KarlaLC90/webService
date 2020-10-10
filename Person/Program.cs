@@ -22,7 +22,7 @@ namespace Person
             //////////Realizando la conexion string//////////////////////////
 
             MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;pooling = false; convert zero datetime=True");
-            
+
             conn.Open();
             MessageBox.Show("ServerVersion: " + conn.ServerVersion +
             "\nState: " + conn.State.ToString());
@@ -32,66 +32,10 @@ namespace Person
 
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
-           
+
             FindRecords();
-           
-        }
-
-        //////////Comando para rellenar la tabla//////////////////////////
-        public static void SelectCommand()
-        {
-            MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;;pooling = false; convert zero datetime=True");
-            string Query = "select * from pa_check_in_outs;";
-            MySqlCommand MyCommand2 = new MySqlCommand(Query, conn);
-
-            //For offline connection we weill use  MySqlDataAdapter class.  
-            MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
-            MyAdapter.SelectCommand = MyCommand2;
-            DataTable dTable = new DataTable();
-            MyAdapter.Fill(dTable);
-        }
-        //////////Comando para rellenar la tabla//////////////////////////
-
-
-        //////////Rellenando los campos de pa_check_in_outs  //////////////////////////
-        public static void pa_check_in_outs(int org_company_id, string personId, long time, int status)
-        {
-            
-            string connectionString = @"server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;pooling = false; convert zero datetime=True";
-
-            MySqlConnection connection = null;
-            try
-            {
-                connection = new MySqlConnection(connectionString);
-                connection.Open();
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.Connection = connection;
-                cmd.CommandText = "INSERT INTO pa_check_in_outs(org_company_id, personId, time, status) VALUES( @org_company_id, @enroll_id, @check_dt, @status)";
-                cmd.Prepare();
-               
-                cmd.Parameters.AddWithValue("@org_company_id", org_company_id);
-                cmd.Parameters.AddWithValue("@enroll_id", Convert.ToInt32(personId));
-                cmd.Parameters.AddWithValue("@check_dt", time.ToString("yyyy-MM-d hh:mm:ss"));                
-                cmd.Parameters.AddWithValue("@status", status);
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = "SELECT * FROM pa_check_in_outs";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            finally
-            {
-                if (connection != null)
-                    connection.Close();
-            }
-
-            
 
         }
-        //////////Rellenando los campos de pa_check_in_outs con parametros ficticios //////////////////////////
-
-
         //////////Aqui se hace el llamado a la API y se obtiene un JSON //////////////////////////
         public static void FindRecords()
         {
@@ -114,19 +58,19 @@ namespace Person
             IRestResponse response = client.Execute(request);
             //Console.WriteLine(response.Content);
 
+
+            var json = response.Content;
+
+            root = JsonConvert.DeserializeObject<Root>(json);
+
             
-                var json = response.Content;
-
-                root = JsonConvert.DeserializeObject<Root>(json);
-
-
             for (int i = 0; i < root.data.records.Count; i++)
-           {
-               pa_check_in_outs(root.data.records[i].org_company_id, root.data.records[i].personId,
-                  root.data.records[i].time, root.data.records[i].status);
-           }
-           
-            Console.WriteLine("Temperatura: "+ root.data.records[0].temperature);
+            {
+                pa_check_in_outs(root.data.records[i].org_company_id, Convert.ToInt32(root.data.records[i].personId),
+                 DateTime(root.data.records[i].time), root.data.records[i].status);
+            }
+
+            Console.WriteLine("Temperatura: " + root.data.records[0].temperature);
             Console.WriteLine("Tiempo: " + root.data.records[0].time);
             Console.WriteLine("Id: " + root.data.records[0].id);
             Console.WriteLine("Ruta: " + root.data.records[0].path);
@@ -142,8 +86,63 @@ namespace Person
             //////////Aqui se hace el llamado a la API y se obtiene un JSON //////////////////////////
             ///
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
-            
+
         }
+
+        //////////Comando para rellenar la tabla//////////////////////////
+        public static void SelectCommand()
+        {
+            MySqlConnection conn = new MySqlConnection("server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;;pooling = false; convert zero datetime=True");
+            string Query = "select * from pa_check_in_outs;";
+            MySqlCommand MyCommand2 = new MySqlCommand(Query, conn);
+
+            //For offline connection we weill use  MySqlDataAdapter class.  
+            MySqlDataAdapter MyAdapter = new MySqlDataAdapter();
+            MyAdapter.SelectCommand = MyCommand2;
+            DataTable dTable = new DataTable();
+            MyAdapter.Fill(dTable);
+        }
+        //////////Comando para rellenar la tabla//////////////////////////
+
+       
+        //////////Rellenando los campos de pa_check_in_outs  //////////////////////////
+        public static void pa_check_in_outs(int org_company_id, int enroll_id, DateTime check_dt, int status)
+        {
+
+            string connectionString = @"server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;pooling = false; convert zero datetime=True";
+
+            MySqlConnection connection = null;
+            try
+            {
+                connection = new MySqlConnection(connectionString);
+                connection.Open();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = connection;
+                cmd.CommandText = "INSERT INTO pa_check_in_outs(org_company_id, enroll_id, check_dt, status) VALUES(@org_company_id, @enroll_id, @check_dt, @status)";
+               
+                cmd.Parameters.AddWithValue("@org_company_id", 1);
+                cmd.Parameters.AddWithValue("@enroll_id", enroll_id);
+                cmd.Parameters.AddWithValue("@check_dt", check_dt);
+                cmd.Parameters.AddWithValue("@status", 1);
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = "SELECT * FROM pa_check_in_outs";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                if (connection != null)
+                    connection.Close();
+            }
+
+
+
+        }
+        //////////Rellenando los campos de pa_check_in_outs con parametros ficticios //////////////////////////
+
+
 
         public static void GetDeviceKey()
         {
@@ -168,13 +167,13 @@ namespace Person
             {
                 Console.WriteLine(e);
             }
-            
+
 
         }
         public static void FindPerson()
         {
             Console.WriteLine("Buscando a un empleado en el dispositivo");
-            
+
             try
             {
                 var client = new RestClient("http://192.168.15.27:8090/person/find");
@@ -187,13 +186,13 @@ namespace Person
                 Console.WriteLine(response.Content);
 
             }
-           
+
             catch (Exception e)
             {
-               
+
                 Console.WriteLine(e);
             }
-            
+
         }
         public static void SetCallback()
         {
@@ -210,16 +209,14 @@ namespace Person
             request.AddParameter("callbackUrl", "C:\\Users\\garde\\Desktop\\callback");
             request.AddParameter("ip", "192.168.15.27");
             request.AddParameter("imgType", "1");
-            
+
             IRestResponse response = client.Execute(request);
             Console.WriteLine(response.Content);
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
             Console.ReadKey();
 
-
-
         }
-       
+
     }
 }
