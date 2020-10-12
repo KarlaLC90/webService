@@ -30,10 +30,10 @@ namespace Person
 
             //////////Realizando la conexion string//////////////////////////
 
+            FindRecords();
+
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n");
 
-
-            FindRecords();
 
         }
         //////////Aqui se hace el llamado a la API y se obtiene un JSON //////////////////////////
@@ -56,29 +56,21 @@ namespace Person
             request.AddParameter("startTime", "0");
             request.AddParameter("endTime", "0");
             IRestResponse response = client.Execute(request);
-            //Console.WriteLine(response.Content);
+            Console.WriteLine(response.Content);
 
 
             var json = response.Content;
 
             root = JsonConvert.DeserializeObject<Root>(json);
 
-            
+
             for (int i = 0; i < root.data.records.Count; i++)
             {
-                pa_check_in_outs(root.data.records[i].org_company_id, Convert.ToInt32(root.data.records[i].personId),
-                 DateTime(root.data.records[i].time), root.data.records[i].status);
+                if (root.data.records[i].personId != "STRANGERBABY" && !Exists_Enroll(Convert.ToInt32(root.data.records[i].personId)))
+                    pa_check_in_outs(root.data.records[i].org_company_id, Convert.ToInt32(root.data.records[i].personId),
+                                     new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMilliseconds(root.data.records[i].time).ToLocalTime(), root.data.records[i].status);
             }
-
-            Console.WriteLine("Temperatura: " + root.data.records[0].temperature);
-            Console.WriteLine("Tiempo: " + root.data.records[0].time);
-            Console.WriteLine("Id: " + root.data.records[0].id);
-            Console.WriteLine("Ruta: " + root.data.records[0].path);
-            Console.WriteLine("Estado " + root.data.records[0].state);
-            Console.WriteLine("Typo: " + root.data.records[0].type);
-            Console.WriteLine("personId: " + root.data.records[0].personId);
-            Console.WriteLine("Modelo: " + root.data.records[0].model + "\n");
-
+           
 
             Console.WriteLine("Si no hay red, o no se inicia el servicio de recepción en la PC, el dispositivo se cargará nuevamente" +
                 " en 10 minutos, y así sucesivamente hasta que el registro de reconocimiento se envíe correctamente a la PC. ");
@@ -122,7 +114,7 @@ namespace Person
                
                 cmd.Parameters.AddWithValue("@org_company_id", 1);
                 cmd.Parameters.AddWithValue("@enroll_id", enroll_id);
-                cmd.Parameters.AddWithValue("@check_dt", check_dt);
+                cmd.Parameters.AddWithValue("@check_dt", check_dt.ToString("yyyy-MM-dd H:mm:ss"));
                 cmd.Parameters.AddWithValue("@status", 1);
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = "SELECT * FROM pa_check_in_outs";
@@ -140,9 +132,38 @@ namespace Person
 
 
         }
-        //////////Rellenando los campos de pa_check_in_outs con parametros ficticios //////////////////////////
+        //////////Rellenando los campos de pa_check_in_outs  //////////////////////////
 
+        public static bool Exists_Enroll(int enroll_id)
+        {
 
+            string connectionString = @"server=74.208.244.101;port=32006;database=hfsecurity;uid=root;password=Preasyst2016;pooling = false; convert zero datetime=True";
+
+            MySqlConnection connection = null;
+            try
+            {
+                connection = new MySqlConnection(connectionString);
+                connection.Open();
+
+                string command = "select * from pa_check_in_outs where enroll_id = " + enroll_id.ToString();
+
+                MySqlDataAdapter dataAdapter = new MySqlDataAdapter();
+                dataAdapter.SelectCommand = new MySqlCommand(command, connection);
+                DataTable table = new DataTable();
+                dataAdapter.Fill(table);
+
+                if (table.Rows.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
+            finally
+            {
+                if (connection != null)
+                    connection.Close();
+            }
+
+        }
 
         public static void GetDeviceKey()
         {
